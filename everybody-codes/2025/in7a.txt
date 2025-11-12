@@ -1,0 +1,18 @@
+Fyndsarix,Fyndelor,Gavsarix,Gavthyris,Kysarix,Fyndthyris,Kythyris,Kyelor,Gavelor
+
+e > l
+s > a
+v > e,t,s
+h > y
+n > d
+a > r,b
+d > e,t,s
+F > y
+i > s,x
+y > t,r,b
+o > r
+K > y
+G > a
+t > h
+l > o
+r > i

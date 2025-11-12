@@ -1,0 +1,25 @@
+Durnkyr,Olarkyr,Harnxar,Felmarsyron,Harnkris,Tirzris,Gavnoris,Olarxelor,Olarzion,Tirsyron,Tharilnoris,Olarris,Felmarkris,Tirnoris,Tirxar,Tirkyr,Gavkris,Gavxelor,Harris,Valzion,Durnxar,Valris,Valxelor,Olarzris,Tharilzris,Harnnoris,Durnsyron,Durnkris,Gavxar,Harix,Valix,Harnsyron,Harnkyr,Tharilkyr,Tirkris,Durnnoris,Tirxelor,Felmarix,Tirxelor,Felmarzion,Durnxelor,Felmarkyr,Harkyr,Harxelor,Durnris,Tirix,Harnxelor,Tirkris,Gavris,Durnix,Harnzris,Harnix,Harnzion,Tharilzion,Valzris,Gavsyron,Tirzion,Tharilris,Olarkris,Gavix,Tirix,Felmarzris,Olarxar,Tirkyr,Valnoris,Tirzris,Felmarris,Harxar,Harzion,Tirzion,Tharilix,Valsyron,Valkris,Tirxar,Harnoris,Valkyr,Tirris,Tharilxar,Tirnoris,Felmarnoris,Felmarxelor,Tirris,Olarix,Harnris,Harkris,Tirsyron,Harsyron,Tharilkris,Harzris,Gavzion,Tharilsyron,Gavkyr,Durnzris,Valxar,Durnzion,Olarsyron,Gavzris,Olarnoris,Felmarxar,Tharilxelor
+
+x > a,e
+l > o,x,s,i,z,k,r,n,v,m
+v > n,x,s,i,z,k,r
+i > s,x,o,v,l
+T > i,h
+a > v,r
+O > l
+n > o,x,s,i,z,k,r,n
+V > a
+H > a
+G > a
+h > v
+s > y
+F > e
+D > u
+k > y,r
+r > i,n,o,x,s,z,k,r
+z > r,i
+e > l,v
+y > r
+o > r,n
+m > a
+u > v
