@@ -1,4 +1,4 @@
-f = open('in9c_test2.txt')
+f = open('in9c.txt')
 il = f.read().splitlines()
 
 l = []
@@ -12,7 +12,7 @@ def is_kid_of(k,p1,p2):
     if (k[i] != p1[i]) and (k[i] != p2[i]):
       return False
   return True
-  
+
 def deg_of_similarity(a,b):
   return sum(x==y for x,y in zip(a,b))
 
@@ -37,7 +37,7 @@ for i in range(len(l)):
             #print(bi, l[bi])
             #print()
 
-            b_cnt += deg_of_similarity(l[i], l[bi])*deg_of_similarity(l[i], l[ai]) 
+            b_cnt += deg_of_similarity(l[i], l[bi])*deg_of_similarity(l[i], l[ai])
 print('part ii', b_cnt)
 
 
@@ -53,7 +53,7 @@ remaining = [x for x in range(1, len(l))]
 #print('fam_grp', fam_grp)
 print()
 j = 0
-  
+
 for fam in fam_list:
   fam_found_group = False
   for fg in fam_grp:
@@ -63,12 +63,38 @@ for fam in fam_list:
       if fam[1] not in fg: fg.append(fam[1])
       if fam[2] not in fg: fg.append(fam[2])
   if not fam_found_group:
-    fam_grp.append(list(fam))  
+    fam_grp.append(list(fam))
   #print('fam_grp', fam_grp)
-  
+
 
 print('== fam_grp', fam_grp)
-    
+
+
+have_action = True
+while have_action:
+  i = 0
+  have_action = False
+  while i <= len(fam_grp):
+    to_merge = []
+    for j in range(i+1, len(fam_grp)):
+
+      merge_this = False
+      for k in fam_grp[i]:
+        #print(k,fam_grp[j])
+        if k in fam_grp[j]:
+          merge_this = True
+          have_action = True
+      if merge_this:
+        to_merge.append(fam_grp[j])
+
+
+    for m in to_merge:
+      fam_grp[i].extend([x for x in m if x not in fam_grp[i]])
+      fam_grp.remove(m)
+      print(fam_grp)
+      print()
+    i += 1
+
 
 largest_fam_size = 0
 for f in fam_grp:
@@ -78,5 +104,5 @@ for f in fam_grp:
     largest_fam_size = max(largest_fam_size, len(f))
 
 
-      
+
 
