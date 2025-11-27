@@ -3,14 +3,8 @@ f = open('everybody_codes_e2025_q14_p2.txt')
 
 mapp = [list(x) for x in f.read().splitlines()]
 
-
 map_w = len(mapp[0])
 map_h = len(mapp)
-
-d = {}
-for y in range(map_h):        
-    for x in range(map_w):
-        d[(y,x)] = '#'
 
 def print_map(m):
     for y in range(len(m)):
@@ -21,8 +15,7 @@ print_map(mapp)
 
 
 def is_active(x, y):
-    #return 0 <= x < map_w and 0 <= y < map_h and mapp[y][x] == '#'
-    return (y,x) in d
+    return 0 <= x < map_w and 0 <= y < map_h and mapp[y][x] == '#'
 
 def num_active_neighbour(x,y):
     count = 0
@@ -33,15 +26,12 @@ def num_active_neighbour(x,y):
     return count
 
 def map_active():
-    '''
     a = 0
     for y in range(map_h):        
         for x in range(map_w):
             if mapp[y][x] == '#':
                 a += 1
     return a
-    '''
-    return len(d)
 
 print(num_active_neighbour(2,2))
 
@@ -65,8 +55,8 @@ start = time.time()
 
 
 import copy
-#mapn = copy.deepcopy(mapp)
-dn = d.copy()
+mapn = copy.deepcopy(mapp)
+
 total_active = 0
 
 while round < 2025:
@@ -76,20 +66,17 @@ while round < 2025:
         for x in range(map_w):
             n = num_active_neighbour(x,y)
             if (is_active(x,y) and n%2 == 1) or (not is_active(x,y) and n%2 == 0):
-                #mapn[y][x] = '#'
-                dn[(y,x)] = '#'
-
-            #else:
-                #mapn[y][x] = '.'
+                mapn[y][x] = '#'
+            else:
+                mapn[y][x] = '.'
     round += 1
     if round % 100 == 0:
         print('round', round)
     #print_map(mapn)
 
-    #mapp = copy.deepcopy(mapn)
-    d = dn.copy()
-    total_active += map_active()
-    #total_active += sum(x.count('#') for x in mapp)
+    mapp = copy.deepcopy(mapn)
+    #total_active += map_active()
+    total_active += sum(x.count('#') for x in mapp)
     #print(total_active, map_active())
 
 
