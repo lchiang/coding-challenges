@@ -12,8 +12,10 @@
 
 [Advent of Code 2023](https://adventofcode.com/2023)
 
+[Advent of Code 2025](https://adventofcode.com/2025)
+
 [r/adventofcode](https://www.reddit.com/r/adventofcode/)
 
 # Everybody Codes
 
-[Everybody Codes](https://everybody.codes/event/2025/quests)
+[Everybody Codes 2025](https://everybody.codes/event/2025/quests)
