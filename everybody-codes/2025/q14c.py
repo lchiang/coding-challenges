@@ -70,8 +70,8 @@ while round < TOTAL_ROUND:
         total_active += len(dn)
         print(f"Round {round}, active {len(dn)}, total active {total_active}")
         ta[round] = len(dn)
-        
-        
+
+
     state = frozenset(dn)
     d = dn.copy()
 
