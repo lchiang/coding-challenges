@@ -1,10 +1,12 @@
 f = open('in17c_test1.txt')
-# f = open('in17b.txt')
-
+f = open('in17c_test2.txt')
+f = open('in17c_test3.txt')
+f = open('in17c.txt')
 
 mapp = [list(x) for x in f.read().splitlines()]
 map_w = len(mapp[0])
 map_h = len(mapp)
+mapd = set()
 
 def print_dict(dd):
     for y in range(map_h):
@@ -17,10 +19,6 @@ def print_dict(dd):
         print(''.join(l))
     print()
 
-mapd = set()
-
-line_below_v = set()
-
 for y in range(map_h):
     for x in range(map_w):
         if mapp[y][x] == '@':
@@ -30,20 +28,11 @@ for y in range(map_h):
         else:
             mapd.add((x,y))
 
-for y in range(yv, map_h+1): #Add 1?
+line_below_v = set()
+for y in range(yv, map_h+1):
     line_below_v.add((xv, y))
 
-# left side of each round = remain with y <= yv
-# below is viped, so we can do simple DFS
-
-import heapq
-
-
-
-
-# right side of each round = remain with y >= yv
-
-def in_range(x, y, r=10):
+def in_range(x, y, r):
     return ((xv - x) * (xv - x) + (yv - y) * (yv - y)) <= (r * r)
 
 def part_1():
@@ -71,95 +60,43 @@ def part_2():
         destroy_this_round = set()
     print('part 2:', max_destroy * max_des_round)
 
-part_2()
-
-def map_after_round(round):
-
-    remain = mapd.copy()
-    will_destroy = set()
-
-    for (x,y) in remain:
-        if in_range(x,y,round):
-            will_destroy.add((x,y))
-    remain = remain - will_destroy
-    return remain
-
-
-
-def dijkstra_left():
+import heapq
+def dijkstra(side, round):
     dist = {}
     dist[(xs,ys)] = 0
     pq = []
     heapq.heappush(pq, (0, (xs,ys)))
     NEIGHBORS = [(-1,0), (1,0), (0,-1), (0,1)]
-
-
     while pq:
         d, (xu, yu) = heapq.heappop(pq)
-        # print(pq)
-
         if d > dist[(xu, yu)]:
             continue
-
         for dx,dy in NEIGHBORS:
             nx, ny = xu + dx, yu + dy
-
-
-            if (nx,ny) not in mapd or (nx,ny) in dist or in_range(nx, ny, 2) or nx > yv:
+            if (nx,ny) not in mapd or (nx,ny) in dist or in_range(nx, ny, round) or \
+               (side == 'left' and nx > xv) or (side == 'right' and (nx < xv and ny > yv)):
                 continue
-            print((nx,ny))
-            '''
-            dist[v] = dist[u] + w
-            heapq.heappush(pq, (dist[v], v))
-            '''
             dist[(nx,ny)] = dist[(xu, yu)] + int(mapp[ny][nx])
-            print(dist)
             heapq.heappush(pq, (dist[(nx,ny)], (nx,ny)))
             # print('123', (dist[(nx,ny)], (nx,ny)), pq)
-
-    # Return the final shortest distances from the source
     return dist
-dl = dijkstra_left()
 
-print_dict(mapd)
-print_dict(dl)
-'''
-def print_dict(dd):
-    for y in range(map_h):
-        l = []
-        for x in range(map_w):
-            if (x,y) in dd:
-                l.append('@')
-            else:
-                l.append('.')
-        print(''.join(l))
-    print()
+def dijkstra_left(round):
+    return dijkstra('left', round)
 
-def get_adjacent(x,y):
-    count = 0
-    NEIGHBORS = [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (-1,1), (1,-1), (1,1)]
-    for dx,dy in NEIGHBORS:
-        if (x + dx, y + dy) in paper:
-            count += 1
-    return count
+def dijkstra_right(round):
+    return dijkstra('right', round)
 
-def can_remove(x,y):
-    adjacent_count = get_adjacent(x,y)
-    return adjacent_count < 4
-
-to_remove = set()
-total_removed = 0
-for round in range(1000):
-    for (x,y) in paper:
-        if can_remove(x,y):
-            to_remove.add((x,y))
-    if round == 0:
-        print(f'Part 1: {len(to_remove)}')
-    if not to_remove:
+for round in range(1, 110):
+    dl = dijkstra_left(round)
+    dr = dijkstra_right(round)
+    min_cost = 10**12
+    for c in line_below_v:
+        if c in dl and c in dr:
+            total_cost = dl[c] + dr[c]- int(mapp[c[1]][c[0]])
+            min_cost = min(total_cost, min_cost)
+            print(min_cost, c)
+    print(f'Round {round}: {min_cost} {(round+1) * 30}')
+    if min_cost < (round+1) * 30:
+        print('part 3:', min_cost * round)
         break
-    total_removed += len(to_remove)
-    paper = paper - to_remove
-    to_remove = set()
-# print_dict(paper)
-print(f'Part 2: {total_removed}')
-'''
