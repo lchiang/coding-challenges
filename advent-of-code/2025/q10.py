@@ -1,4 +1,4 @@
-with open('in10_test.txt') as f:
+with open('in10_trimmed.txt') as f:
     ll = f.read().splitlines()
 
 from itertools import product
@@ -53,6 +53,40 @@ def solve(target, buttons, max_val=10):
 
 
 
+from itertools import product
+from sympy import Matrix, linsolve, symbols, simplify
+
+def button_matrix(buttons, light_num):
+    m = []
+    for b in buttons:
+        b_line = [0]*light_num
+        for i in b:
+            b_line[i] = 1
+        m.append(b_line)
+    mm = Matrix(m, rational=False).T
+    return mm
+
+def solve_solution(button_M: Matrix, target: list):
+
+    c = symbols(f'c0:{button_M.shape[1]}')
+    sol = linsolve((button_M,Matrix(target)), c)
+
+    exprs = list(sol)[0]
+    free_vars = list(set().union(*[expr.free_symbols for expr in list(sol)[0]]))
+
+    # print(exprs, free_vars)
+
+    min_press = sum(target)
+    ranges = [range(0, max(target)) for _ in free_vars]  # 0..10 for each variable
+    for values in product(*ranges):
+        subs_map = dict(zip(free_vars, values))
+        substituted = [expr.subs(subs_map) for expr in exprs]
+        if sum(substituted) < min_press and all(n >= 0 for n in substituted) and all(val.is_integer for val in substituted):
+            # print(f"{subs_map} -> {substituted}, sum {sum(substituted)}")
+            min_press = sum(substituted)
+
+    return min_press
+
 
 
 
@@ -68,19 +102,24 @@ for l in ll:
     target_str = re.search(r'\{(.*?)\}', l).group(1)
     target = list(map(int, target_str.split(',')))
 
-    print(l)
+    # print(l)
     # print("Part 1 Init State:", init_state)
     # print("Buttons:", buttons)
     # print("Part 2 Target:", target)
     press_num_1 += min_press_to_off(init_state, buttons)
 
 
-    # print("Target Pattern", [x % 2 for x in target])
-    solutions = solve(target, buttons, max_val=5)
 
-    if solutions == None:
-        print(l)
-    press_num_2 += solutions
+
+
+    mp = solve_solution(button_matrix(buttons, len(target)), target)
+    print(mp, l)
+
+
+
+
+
+    press_num_2 += mp
 
 # 1, 3, 0, 3, 1, 2
 
