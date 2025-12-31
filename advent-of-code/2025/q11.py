@@ -1,92 +1,34 @@
-with open('in11_test2.txt') as f:
+with open('in11.txt') as f:
     ll = f.read().splitlines()
 
+from collections import defaultdict
 
+g = defaultdict(set)
+for l in ll:
+    k, v = l.split(':')
+    g[k] = v.split()
 
-class DAG:
-    def __init__(self):
-        self.graph = {}
+from functools import cache
 
-    def add_edge(self, src, dest):
-        if src not in self.graph:
-            self.graph[src] = []
-        if dest not in self.graph:
-            self.graph[dest] = []
-        self.graph[src].append(dest)
-
-    def build_from_lines(self, lines):
-        for line in lines:
-            if ":" not in line:
-                continue
-            src, dests = line.split(":")
-            src = src.strip()
-            for dest in dests.strip().split():
-                self.add_edge(src, dest)
-
-    def pretty_print(self):
-        for node, neighbors in self.graph.items():
-            print(f"{node} -> {', '.join(neighbors)}")
-
-def find_all_paths(graph, start, end, path=None):
-    if path is None:
-        path = []
-    path = path + [start]
-
+@cache
+def find_paths_num(start, end, avoid):
     if start == end:
-        return [path]
+        return 1
+    if start not in g:
+        return 0
+    n = 0
+    for neighbor in g[start]:
+        if neighbor not in avoid:
+            n += find_paths_num(neighbor, end, avoid)
+    return n
 
-    if start not in graph:
-        return []
+dac_fft = find_paths_num('dac', 'fft', ('svr','out'))
+fft_dac = find_paths_num('fft', 'dac', ('svr','out'))
+print(dac_fft)
+print(fft_dac)
 
-    paths = []
-    for neighbor in graph[start]:
-        if neighbor not in path:  # avoid cycles
-            new_paths = find_all_paths(graph, neighbor, end, path)
-            for p in new_paths:
-                print(p)
-                paths.append(p)
-
-    return paths
-
-
-
-dag = DAG()
-dag.build_from_lines(ll)
-
-print("Graph structure:")
-dag.pretty_print()
-
-# print("\nAll paths from aaa to out:")
-# paths = find_all_paths(dag.graph, "svr", "out")
-# for p in paths:
-#     # if 'dac' in p and 'fft' in p:
-#         print(" -> ".join(p))
-
-# print('part 1: ', len(paths))
-
-
-# svr,aaa,fft,ccc,eee,dac,fff,ggg,out
-# svr,aaa,fft,ccc,eee,dac,fff,hhh,out
-#
-# svr,aaa,fft,ccc,ddd,hub,fff,ggg,out
-# svr,aaa,fft,ccc,ddd,hub,fff,hhh,out
-# svr,bbb,tty,ccc,ddd,hub,fff,ggg,out
-# svr,bbb,tty,ccc,ddd,hub,fff,hhh,out
-# svr,bbb,tty,ccc,eee,dac,fff,ggg,out
-# svr,bbb,tty,ccc,eee,dac,fff,hhh,out
-
-print(1)
-paths = find_all_paths(dag.graph, "svr", "dac")
-for p in paths:
-    # if 'dac' in p and 'fft' in p:
-        print(" -> ".join(p))
-print(2)
-paths = find_all_paths(dag.graph, "fft", "dac")
-for p in paths:
-    # if 'dac' in p and 'fft' in p:
-        print(" -> ".join(p))
-print(3)
-paths = find_all_paths(dag.graph, "dac", "out")
-for p in paths:
-    # if 'dac' in p and 'fft' in p:
-        print(" -> ".join(p))
+if fft_dac:
+    re = find_paths_num('svr', 'fft', ('dac','out')) * fft_dac * find_paths_num('dac', 'out', ('svr','fft'))
+else:
+    re = find_paths_num('svr', 'dac', ('fft','out')) * dac_fft * find_paths_num('fft', 'out', ('dac','fft'))
+print('part 2: ', re)

@@ -1,7 +1,9 @@
-with open('in10_trimmed.txt') as f:
+with open('in10.txt') as f:
     ll = f.read().splitlines()
 
 from itertools import product
+from sympy import Matrix, linsolve, symbols
+
 def press(init_state, button, presses):
     s = list(init_state)
     for i in range(len(presses)):
@@ -29,33 +31,6 @@ def min_press_to_off(init_state, buttons):
             return sum(combo)
 
 
-def apply_combo(length, buttons, combo):
-    result = [0] * length
-    for count, btn in zip(combo, buttons):
-        for idx in btn:
-            result[idx] += count
-    return result
-
-def solve(target, buttons, max_val=10):
-    n = len(buttons)
-    solutions = []
-    toggle_c = toggle_combo(len(target),buttons,[x % 2 for x in target])
-
-    combosd = []
-    for c in product(range(0, max_val+1), repeat=n):
-        if tuple([x % 2 for x in c]) in toggle_c:
-            combosd.append(c)
-    combosd.sort(key=lambda c: (sum(c), c))
-    for combo in combosd:  # positive integers only
-        if apply_combo(len(target), buttons, combo) == target:
-            solutions.append(combo)
-            return sum(combo)
-
-
-
-from itertools import product
-from sympy import Matrix, linsolve, symbols, simplify
-
 def button_matrix(buttons, light_num):
     m = []
     for b in buttons:
@@ -67,29 +42,39 @@ def button_matrix(buttons, light_num):
     return mm
 
 def solve_solution(button_M: Matrix, target: list):
-
     c = symbols(f'c0:{button_M.shape[1]}')
     sol = linsolve((button_M,Matrix(target)), c)
-
     exprs = list(sol)[0]
     free_vars = list(set().union(*[expr.free_symbols for expr in list(sol)[0]]))
-
-    # print(exprs, free_vars)
-
     min_press = sum(target)
-    ranges = [range(0, max(target)) for _ in free_vars]  # 0..10 for each variable
+    ranges = [range(0, max(target)) for _ in free_vars]
     for values in product(*ranges):
         subs_map = dict(zip(free_vars, values))
         substituted = [expr.subs(subs_map) for expr in exprs]
         if sum(substituted) < min_press and all(n >= 0 for n in substituted) and all(val.is_integer for val in substituted):
             # print(f"{subs_map} -> {substituted}, sum {sum(substituted)}")
             min_press = sum(substituted)
-
     return min_press
 
-
-
-
+# vibe-coded function
+import pulp
+def solve_solution3(button_M: Matrix, target: list):
+    num_lights, num_buttons = button_M.shape
+    A = button_M.tolist()
+    prob = pulp.LpProblem("min_sum_non_negative_integers", pulp.LpMinimize)
+    c = [pulp.LpVariable(f"c{j}", lowBound=0, cat='Integer') for j in range(num_buttons)]
+    prob += pulp.lpSum(c)
+    for i in range(num_lights):
+        prob += pulp.lpSum(A[i][j] * c[j] for j in range(num_buttons)) == target[i]
+    status = prob.solve(pulp.PULP_CBC_CMD(msg=0))
+    if status == pulp.LpStatusOptimal:
+        min_sum = int(pulp.value(prob.objective))
+        # solution = [int(pulp.value(var)) for var in c]
+        # print(f"Solution: {solution}, sum {min_sum}")
+        return min_sum
+    else:
+        print("No optimal solution found")
+        return None
 
 press_num_1 = 0
 press_num_2 = 0
@@ -102,34 +87,9 @@ for l in ll:
     target_str = re.search(r'\{(.*?)\}', l).group(1)
     target = list(map(int, target_str.split(',')))
 
-    # print(l)
-    # print("Part 1 Init State:", init_state)
-    # print("Buttons:", buttons)
-    # print("Part 2 Target:", target)
     press_num_1 += min_press_to_off(init_state, buttons)
+    press_num_2 += solve_solution3(button_matrix(buttons, len(target)), target)
 
-
-
-
-
-    mp = solve_solution(button_matrix(buttons, len(target)), target)
-    print(mp, l)
-
-
-
-
-
-    press_num_2 += mp
-
-# 1, 3, 0, 3, 1, 2
-
-    # tc = toggle_combo(len(init_state_str),buttons,[x % 2 for x in target])
-    # for c in tc:
-    #     print('>', c)
-    #     print(apply_combo(len(init_state),buttons,c))
-
-
-    print()
-
-print(press_num_1)
-print(press_num_2)
+print()
+print('Part 1: ',press_num_1)
+print('Part 2: ',press_num_2)
