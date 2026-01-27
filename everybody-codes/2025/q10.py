@@ -1,24 +1,6 @@
-f = open('in10c_t1.txt')
+f = open('in10c.txt')
 mapp = f.read().splitlines()
 
-def print_map1(m):
-    for y in range(len(m)):
-        print(''.join(m[y]))
-    print()
-
-import copy
-def print_points(pl, clean_map, c):
-    m = copy.deepcopy(mapp)
-    for y in range(map_h):
-        for x in range(map_w):
-            if clean_map:
-                m[y][x] = '.'
-            if (x,y) in pl:
-                m[y][x] = c
-    print_map1(m)
-
-
-import copy
 def print_map3(sl3, d):
     global hideout_list
     for y in range(map_h):
@@ -30,11 +12,6 @@ def print_map3(sl3, d):
             else: l.append('.')
         print(''.join(l))
     print()
-
-
-def print_pts(pl, c):
-    return print_points(pl,True,c)
-
 
 def next_by_pt_list(pl):
     l = []
@@ -63,8 +40,8 @@ map_w = len(mapp[0])
 map_h = len(mapp)
 
 sheep_list = []
-hideout_list = []
-sl3 = [None] * map_w
+hideout_list = set()
+sheep_list_c = [None] * map_w
 
 for y in range(map_h):
     for x in range(map_w):
@@ -72,9 +49,9 @@ for y in range(map_h):
             dragon_start = Point(x, y)
         if mapp[y][x] == 'S':
             sheep_list.append(Point(x, y))
-            sl3[x] = y
+            sheep_list_c[x] = y
         if mapp[y][x] == '#':
-            hideout_list.append(Point(x, y))
+            hideout_list.add(Point(x, y))
 
 escape_spots = set()
 for h in hideout_list:
@@ -85,29 +62,23 @@ for h in hideout_list:
     if touches_bottom:
         escape_spots.add(h)
 
-
-
-    # if (x,y) in hideout_list for y from i to map_h
-    # then (x,y) for the smallest y add to save_spots
-
-''' Part i Start '''
-def reach_in_step(step, pl):
-    l = pl.copy()
-    for p in pl:
-        ns = next_by_pt_list([p])
-        for n in ns:
-            if n not in l:
-                l.append(n)
-    return l if step == 1 else reach_in_step(step-1, l)
-
-def count_sheep(pl):
-    cnt = 0
-    for p in pl:
-        if mapp[p.y][p.x] == 'S':
-            cnt += 1
-    return cnt
-print('part i', count_sheep(reach_in_step(4,[dragon_start])))
-''' Part i End '''
+def part_1():
+    def reach_in_step(step, pl):
+        l = pl.copy()
+        for p in pl:
+            ns = next_by_pt_list([p])
+            for n in ns:
+                if n not in l:
+                    l.append(n)
+        return l if step == 1 else reach_in_step(step-1, l)
+    def count_sheep(pl):
+        cnt = 0
+        for p in pl:
+            if mapp[p.y][p.x] == 'S':
+                cnt += 1
+        return cnt
+    print('part i', count_sheep(reach_in_step(4,[dragon_start])))
+# part_1()
 
 
 def part_2():
@@ -144,14 +115,23 @@ def part_2():
             sl.remove(e)
         total_eat_cnt += round_eat_cnt
     print('part ii', total_eat_cnt)
-
 # part_2()
 
-win_cnt = 0
-def next_step(sl: list[Point], d, step_str):
-    global win_cnt
-    print('in next_step', step_str)
+def mapX(d):
+    letters = ['A', 'B', 'C', 'D', 'E','F','G','H','I','J']
+    return letters[d]
 
+count_dict = {}
+def next_step(sl: list[Point], d, step_str):
+    state = tuple(sl + [d.x, d.y])
+    if state in count_dict:
+        return count_dict[state]
+    if all(x is None for x in sl):
+        count_dict[state] = 1
+        return 1
+
+    win_c = 0
+    sheep_moved = False
     for x in range(len(sl)):
         if sl[x] is not None:
             l = sl.copy()
@@ -161,38 +141,34 @@ def next_step(sl: list[Point], d, step_str):
 
             if next_pos in escape_spots or next_pos.y == map_h: # sheep escaped
                 l[x] = None
-                print('LOSS')
+                sheep_moved = True
+                # print('LOSS', step_str + 'S>' + f'{mapX(next_pos.x)}{next_pos.y+1} ')
             else:
                 l[x] = sl[x]+1
-
+                sheep_moved = True
                 # print('sheep move', (next_pos.x, next_pos.y))
-                step_str += 'S' + f'{next_pos.x}{next_pos.y} '
-                print_map3(l, d)
-
+                step_str1 = step_str + 'S>' + f'{mapX(next_pos.x)}{next_pos.y+1} '
+                # print_map3(l, d)
                 next_d = next_by_pt_list([d])
                 for nd in next_d:
-
                     nl = l.copy()
-                    if nl[nd.x] == nd.y:
+                    if nl[nd.x] == nd.y and nd not in hideout_list: # Dragon move: Eat sheep
                         nl[nd.x] = None
-                        # print('ate ', nd)
-                    if all(x is None for x in nl):
-                        win_cnt += 1
-                        print('===win_cnt', win_cnt)
-                    else:
-                        # print('dragon move', (nd.x, nd.y))
-                        step_str += 'D' + f'{nd.x}{nd.y} '
-                        # print_map3(nl, nd)
-                        next_step(nl, nd, step_str)
+                    step_str2 = step_str1 + 'D>' + f'{mapX(nd.x)}{nd.y+1} '
+                    # print_map3(nl, nd)
+                    win_c += next_step(nl, nd, step_str2)
 
+    if not sheep_moved:
+        next_d = next_by_pt_list([d])
+        for nd in next_d:
+            nl = l.copy()
+            if nl[nd.x] == nd.y and nd not in hideout_list: # Dragon move: Eat sheep
+                nl[nd.x] = None
+            step_str2 = step_str + 'D>' + f'{mapX(nd.x)}{nd.y+1} '
+            # print_map3(nl, nd)
+            win_c += next_step(nl, nd, step_str2)
 
+    count_dict[state] = win_c
+    return win_c
 
-
-
-
-
-
-
-
-
-next_step(sl3, dragon_start,'')
+print(next_step(sheep_list_c, dragon_start,''))
