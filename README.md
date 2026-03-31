@@ -19,3 +19,5 @@
 # Everybody Codes
 
 [Everybody Codes 2025](https://everybody.codes/event/2025/quests)
+
+[Everybody Codes Story 3 - Melody Made of Code](https://everybody.codes/story/3/quests)
