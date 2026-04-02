@@ -1,7 +1,7 @@
 with open('q2_input.txt', 'r') as file:
     grid = [list(line.rstrip('\n')) for line in file]
 
-PADDING = 5
+PADDING = 10
 rows = len(grid)
 cols = len(grid[0]) if rows > 0 else 0
 
@@ -41,8 +41,48 @@ pos = start
 steps = 0
 dir_idx = 0
 
-max_steps = 100
+max_steps = 1000
 
+def all_targets_surrounded_2(targets, visited, rows, cols, padding):
+    """Return True only if ALL vocal bones are fully surrounded.
+    Flood fills from the border (outside). If no # is reachable from outside, they are all surrounded."""
+    from collections import deque
+
+    if not targets:
+        return True
+
+    q = deque()
+    seen = set()
+
+    # Start flood fill from all padding border cells
+    for r in range(rows):
+        for c in [0, cols-1]:                    # left and right edges
+            if (r, c) not in visited:
+                q.append((r, c))
+                seen.add((r, c))
+    for c in range(cols):
+        for r in [0, rows-1]:                    # top and bottom edges
+            if (r, c) not in visited:
+                q.append((r, c))
+                seen.add((r, c))
+
+    # Flood fill from border
+    while q:
+        r, c = q.popleft()
+        for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < rows and 0 <= nc < cols and
+                (nr, nc) not in seen and
+                (nr, nc) not in visited):
+                seen.add((nr, nc))
+                q.append((nr, nc))
+
+    # Check if ANY target (#) is reachable from the border
+    for target in targets:
+        if target in seen:
+            return False   # at least one # can escape → not all surrounded
+
+    return True   # no # is reachable from outside → all are surrounded
 
 def all_targets_surrounded(targets, visited, rows, cols, padding):
     """Return True only if ALL vocal bones are fully surrounded"""
@@ -67,6 +107,46 @@ def all_targets_surrounded(targets, visited, rows, cols, padding):
                     q.append((nr, nc))
     return True
 
+def fill_surrounded_regions_2(visited, padding):
+    """Reverse flood fill: mark everything reachable from border as safe.
+       Then add all unreachable empty cells to visited (surrounded)."""
+    from collections import deque
+    rows = len(grid)
+    cols = len(grid[0])
+
+    # Start flood fill from all border cells (the "outside")
+    q = deque()
+    seen = set()
+
+    # Add all cells on the padding border to the queue
+    for r in range(rows):
+        for c in [0, cols-1]:                    # left and right border
+            if (r, c) not in visited:
+                q.append((r, c))
+                seen.add((r, c))
+    for c in range(cols):
+        for r in [0, rows-1]:                    # top and bottom border
+            if (r, c) not in visited:
+                q.append((r, c))
+                seen.add((r, c))
+
+    # Flood fill from border
+    while q:
+        r, c = q.popleft()
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < rows and 0 <= nc < cols and
+                (nr, nc) not in visited and
+                (nr, nc) not in seen and
+                (nr, nc) not in targets):        # don't go through #
+                seen.add((nr, nc))
+                q.append((nr, nc))
+
+    # Now, any empty cell NOT in 'seen' is surrounded → add to visited
+    for r in range(rows):
+        for c in range(cols):
+            if (r, c) not in visited and (r, c) not in seen and (r, c) not in targets:
+                visited.add((r, c))
 
 def fill_surrounded_regions(visited, new_pos, padding):
     # TODO Debugging here when steps = 33, new_pos = (4,7), (5,7) should paint
@@ -74,19 +154,20 @@ def fill_surrounded_regions(visited, new_pos, padding):
     rows = len(grid)
     cols = len(grid[0])
 
+
     candidates = [new_pos]
     for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
         nr, nc = new_pos[0] + dr, new_pos[1] + dc
-        if 0 <= nr < rows and 0 <= nc < cols and (nr, nc) not in visited and (nr, nc) != new_pos:
+        if 0 <= nr < rows and 0 <= nc < cols and (nr, nc) not in visited and (nr, nc) not in targets and (nr, nc) != new_pos:
             candidates.append((nr, nc))
-    if new_pos == (4,7):
-        print(candidates)
+    # if new_pos == (4,7):
+    #     print('candidates', candidates)
 
     for start_cell in candidates:
 
         if start_cell in visited:
             continue
-        if new_pos == (4,7): print(start_cell)
+        # if new_pos == (4,7): print('start_cell-start',  start_cell)
 
         q = deque([start_cell])
         seen = set([start_cell])
@@ -95,25 +176,31 @@ def fill_surrounded_regions(visited, new_pos, padding):
         while q and not can_escape:
             x, y = q.popleft()
 
-            if x < padding or x >= rows - padding or y < padding or y >= cols - padding:
-                if new_pos == (4,7) and start_cell == (5,7):
-                    print(x,y, x < padding , x >= rows - padding , y < padding , y >= cols - padding)
+            # if new_pos == (4,7) and start_cell == (5,7):
+            #     print(x,y, x < 0 , x >= rows - 0 , y < 0 , y >= cols - 0, '|', x < padding or x >= rows - padding or y < padding or y >= cols - padding)
+            if x < 0 or x >= rows -1 or y < 0 or y >= cols - 1 :
+                # if new_pos == (4,7) and start_cell == (5,7):
+                #     print('can escape', x,y, x < padding , x >= rows - padding , y < padding , y >= cols - padding)
                 can_escape = True
                 break
 
             for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
                 nr, nc = x + dr, y + dc
                 if (0 <= nr < rows and 0 <= nc < cols and
-                    (nr, nc) not in visited and (nr, nc) != new_pos and (nr, nc) not in seen):
+                    (nr, nc) not in visited and (nr, nc) not in targets and (nr, nc) != new_pos and (nr, nc) not in seen):
                     seen.add((nr, nc))
                     q.append((nr, nc))
                     if new_pos == (4,7) and start_cell == (5,7):
                         print('seen', seen, can_escape, 'q', q)
 
+        # if new_pos == (4,7):
+        #     print('start_cell-end',  start_cell)
+        #     print(q,seen,can_escape)
+
         if not can_escape and seen:
             visited.update(seen)
-            if new_pos == (4,7):
-                print(seen)
+            # if new_pos == (4,7):
+            #     print(seen)
 
 
 def print_map(grid, visited, pos, targets, steps):
@@ -129,6 +216,10 @@ def print_map(grid, visited, pos, targets, steps):
         print("".join(line))
     print("-" * len(grid[0]))
 
+
+import time
+
+start = time.perf_counter()
 
 # ====================== MAIN SIMULATION ======================
 while steps < max_steps:
@@ -147,13 +238,19 @@ while steps < max_steps:
             steps += 1
             moved = True
 
-            fill_surrounded_regions(visited, pos, PADDING)
-            print_map(grid, visited, pos, targets, steps)
+            # fill_surrounded_regions(visited, pos, PADDING)
+            fill_surrounded_regions_2(visited, PADDING)
+            # if steps % 100 == 0:
+            #     print_map(grid, visited, pos, targets, steps)
 
-            # if steps > 3000 or steps % 100 == 0:
-            print(f"Step {steps, pos} | Surrounded: {all_targets_surrounded(targets, visited, len(grid), len(grid[0]), PADDING)}")
+            if steps > 3000 or steps % 100 == 0:
+                end = time.perf_counter()
 
-            if all_targets_surrounded(targets, visited, len(grid), len(grid[0]), PADDING):
+                print(f"Execution time: {end - start:.6f} seconds")
+                print(f"Step {steps, pos} | Surrounded: {all_targets_surrounded(targets, visited, len(grid), len(grid[0]), PADDING)}")
+
+            if steps < 3000 and all_targets_surrounded_2(targets, visited, rows, cols, PADDING):
+            # if all_targets_surrounded(targets, visited, len(grid), len(grid[0]), PADDING):
                 print_map(grid, visited, pos, targets, steps)
                 print(f"\nAll vocal bones are surrounded after {steps} steps!")
                 exit(0)
