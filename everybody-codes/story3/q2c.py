@@ -1,7 +1,7 @@
 with open('q2_input.txt', 'r') as file:
     grid = [list(line.rstrip('\n')) for line in file]
 
-PADDING = 10
+PADDING = 20
 rows = len(grid)
 cols = len(grid[0]) if rows > 0 else 0
 
@@ -41,7 +41,7 @@ pos = start
 steps = 0
 dir_idx = 0
 
-max_steps = 1000
+max_steps = 10000
 
 def all_targets_surrounded_2(targets, visited, rows, cols, padding):
     """Return True only if ALL vocal bones are fully surrounded.
@@ -243,17 +243,21 @@ while steps < max_steps:
             # if steps % 100 == 0:
             #     print_map(grid, visited, pos, targets, steps)
 
-            if steps > 3000 or steps % 100 == 0:
+            if steps > 2300 or steps % 100 == 0:
                 end = time.perf_counter()
 
                 print(f"Execution time: {end - start:.6f} seconds")
                 print(f"Step {steps, pos} | Surrounded: {all_targets_surrounded(targets, visited, len(grid), len(grid[0]), PADDING)}")
+                print(f"Step {steps, pos} | Surrounded2: {all_targets_surrounded_2(targets, visited, rows, cols, PADDING)}")
+                print_map(grid, visited, pos, targets, steps)
 
-            if steps < 3000 and all_targets_surrounded_2(targets, visited, rows, cols, PADDING):
+            if steps > 2300 and all_targets_surrounded(targets, visited, rows, cols, PADDING):
             # if all_targets_surrounded(targets, visited, len(grid), len(grid[0]), PADDING):
                 print_map(grid, visited, pos, targets, steps)
                 print(f"\nAll vocal bones are surrounded after {steps} steps!")
                 exit(0)
+
+
 
 
 
@@ -262,6 +266,7 @@ while steps < max_steps:
 
     if not moved:
         print("Stream got stuck")
+        print_map(grid, visited, pos, targets, steps)
         break
 
 else:
